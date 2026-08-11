@@ -2,7 +2,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 /* NAVBAR */
 const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 40); });
+let isScrolled = false;
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY > 40;
+  if (scrolled !== isScrolled) {
+    isScrolled = scrolled;
+    navbar.classList.toggle('scrolled', isScrolled);
+  }
+}, { passive: true });
 
 /* MOBILE MENU */
 const burgerBtn = document.getElementById('burgerBtn');
@@ -52,17 +59,44 @@ function animateParticles() {
   requestAnimationFrame(animateParticles);
 }
 initParticles(); animateParticles();
-window.addEventListener('resize', initParticles);
 
-/* HERO MOUSE PARALLAX + ROTATION */
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(initParticles, 150);
+}, { passive: true });
+
+/* MOUSE PARALLAX (HERO & SERVICES) WITH QUICK_TO */
+const spherePar = document.getElementById('spherePar');
+const svcPar = document.getElementById('svcPar');
+let heroXTo, heroYTo, svcXTo, svcYTo;
+
+if (spherePar) {
+  heroXTo = gsap.quickTo(spherePar, "x", { duration: 0.8, ease: 'power2.out' });
+  heroYTo = gsap.quickTo(spherePar, "y", { duration: 0.8, ease: 'power2.out' });
+}
+if (svcPar) {
+  svcXTo = gsap.quickTo(svcPar, "x", { duration: 0.9, ease: 'power2.out' });
+  svcYTo = gsap.quickTo(svcPar, "y", { duration: 0.9, ease: 'power2.out' });
+}
+
+if (spherePar || svcPar) {
+  document.addEventListener('mousemove', (e) => {
+    const pctX = e.clientX / window.innerWidth - 0.5;
+    const pctY = e.clientY / window.innerHeight - 0.5;
+    
+    if (heroXTo && heroYTo) {
+      heroXTo(pctX * 18);
+      heroYTo(pctY * 18);
+    }
+    if (svcXTo && svcYTo) {
+      svcXTo(pctX * 14);
+      svcYTo(pctY * 14);
+    }
+  }, { passive: true });
+}
+
 const heroRotor = document.getElementById('heroRotor');
-document.addEventListener('mousemove', (e) => {
-  const par = document.getElementById('spherePar');
-  if (!par) return;
-  const x = (e.clientX / window.innerWidth - 0.5) * 18;
-  const y = (e.clientY / window.innerHeight - 0.5) * 18;
-  gsap.to(par, { x: x, y: y, duration: 0.8, ease: 'power2.out' });
-});
 if (heroRotor) {
   gsap.to(heroRotor, { rotation: 360, transformOrigin: 'center center', duration: 26, repeat: -1, ease: 'none' });
 }
@@ -179,14 +213,7 @@ mm.add("(min-width: 1025px)", () => {
   });
 });
 
-/* AMBIENT PARALLAX FOR SERVICES LOGO */
-document.addEventListener('mousemove', (e) => {
-  const par = document.getElementById('svcPar');
-  if (!par) return;
-  const x = (e.clientX / window.innerWidth - 0.5) * 14;
-  const y = (e.clientY / window.innerHeight - 0.5) * 14;
-  gsap.to(par, { x: x, y: y, duration: 0.9, ease: 'power2.out' });
-});
+
 
 /* ---------- CONTACT FORM SUBMISSION TO GMAIL ---------- */
 (function () {
